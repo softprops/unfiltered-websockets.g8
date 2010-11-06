@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Unfiltered WebSockets</title>
+    <style type="text/css">
+      * { margin:0; padding:0; }
+      body { font-size: 24px; font-family:helvetica, sans serif; padding:1em; color:#333; }
+      input[type='text'] { font-size:24px; } #debug { font-size:16px; color:#ccc; }
+    </style>
+    <script text="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+  </head>
+  <body>
+    ws://localhost:$websocket_port$/
+    <form onsubmit="return false;">
+      <input type="text" name="message" value="Hello World" />
+      <input type="submit" value="Send" id="submit" />
+      <input type="button" value="toogle connection" id="tooglr" />
+    </form>
+    <div id="debug"></div>
+    <ul></ul> 
+    <script type="text/javascript">
+       (function(jq){
+         var socket, host = "ws://localhost:$websocket_port$/";
+
+          var supportsWebsockets = function() { return window.WebSocket; }
+
+          var createSocket = function(uri) {
+            if(supportsWebsockets()) {
+               socket = new WebSocket(uri);
+               socket.onmessage = function(e) { 
+                 jq('ul').first().append(['<li>', e.data, '</li>'].join("")); 
+               }
+               socket.onopen = function(e) { 
+                 debug('socket open') 
+               }
+               socket.onclose = function(e) { 
+                 debug('socket close'); 
+               }
+             } else { 
+               alert("your browser does not support web sockets. try chrome."); 
+             }
+          }
+
+          var debug = function(msg) { jq("#debug").html(msg); }
+
+          createSocket(host);
+
+          var send = function(message) {
+            if(!supportsWebsockets()) { return; }
+            if(socket.readyState == WebSocket.OPEN) {
+              socket.send(message);
+            } else { 
+              alert("socket is not open"); 
+            }
+          }
+          var isOpen = function() { return supportsWebsockets() ? socket.readyState == WebSocket.OPEN : false; }
+          var isClosed = function() { return supportsWebsockets() ? !isOpen() : false; };
+          var closeSocket = function() { if(supportsWebsockets() && isOpen()) { socket.close(); } };
+          var openSocket = function() {
+             if(isOpen()) {
+               alert('socket already open');
+               return;
+             }
+             createSocket(host);
+          }
+          var toggleConnection = function() { if(isOpen()) { closeSocket(); } else { openSocket(); } };
+          jq("#submit").click(function(e){
+            e.preventDefault();
+            send(this.form.message.value);
+            return false;
+          });
+          jq("#tooglr").click(function(e){
+            e.preventDefault();
+            toggleConnection();
+            return false;
+          });
+       })(jQuery);    
+    </script>
+  </body>
+</html>
