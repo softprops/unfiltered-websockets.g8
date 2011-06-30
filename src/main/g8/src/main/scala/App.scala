@@ -25,7 +25,7 @@ object App {
             println("error occured %s" format e.getMessage)
       }
     })
-     .onPass(_.sendUpstream(_))
+     .onPass(_.sendUpstream(_)))
     .handler(unfiltered.netty.cycle.Planify{
       case _ => ResponseString("not a websocket")
     })
