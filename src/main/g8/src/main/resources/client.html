@@ -17,7 +17,7 @@
       <input type="button" value="toogle connection" id="tooglr" />
     </form>
     <div id="debug"></div>
-    <ul></ul> 
+    <ul></ul>
     <script type="text/javascript">
        (function(jq){
          var socket, host = "ws://localhost:$websocket_port$/";
@@ -27,17 +27,17 @@
           var createSocket = function(uri) {
             if(supportsWebsockets()) {
                socket = new WebSocket(uri);
-               socket.onmessage = function(e) { 
-                 jq('ul').first().append(['<li>', e.data, '</li>'].join("")); 
+               socket.onmessage = function(e) {
+                 jq('ul').first().append(['<li>', e.data, '</li>'].join(""));
                }
-               socket.onopen = function(e) { 
-                 debug('socket open') 
+               socket.onopen = function(e) {
+                 debug('socket open')
                }
-               socket.onclose = function(e) { 
-                 debug('socket close'); 
+               socket.onclose = function(e) {
+                 debug('socket close');
                }
-             } else { 
-               alert("your browser does not support web sockets. try chrome."); 
+             } else {
+               alert("your browser does not support web sockets. try chrome.");
              }
           }
 
@@ -49,8 +49,8 @@
             if(!supportsWebsockets()) { return; }
             if(socket.readyState == WebSocket.OPEN) {
               socket.send(message);
-            } else { 
-              alert("socket is not open"); 
+            } else {
+              alert("socket is not open");
             }
           }
           var isOpen = function() { return supportsWebsockets() ? socket.readyState == WebSocket.OPEN : false; }
@@ -74,7 +74,7 @@
             toggleConnection();
             return false;
           });
-       })(jQuery);    
+       })(jQuery);
     </script>
   </body>
 </html>

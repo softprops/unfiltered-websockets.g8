@@ -1,6 +1,6 @@
 organization := "com.example"
 
-name := "=$name$"
+name := "$name$"
 
 version := "0.1.0"
 
