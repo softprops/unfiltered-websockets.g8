@@ -6,14 +6,15 @@
       * { margin:0; padding:0; }
       body { font-size: 24px; font-family:helvetica, sans serif; padding:1em; color:#333; }
       input[type='text'] { font-size:24px; } #debug { font-size:16px; color:#ccc; }
+      ul { list-style:none; }
     </style>
     <script text="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
   </head>
   <body>
     ws://localhost:$websocket_port$/
     <form onsubmit="return false;">
-      <input type="text" name="message" value="Hello World" />
-      <input type="submit" value="Send" id="submit" />
+      <input type="text" name="message" id="message" placeholder="Hey bro" />
+      <input type="submit" value="Send" disabled="disabled" id="submit" />
       <input type="button" value="toogle connection" id="tooglr" />
     </form>
     <div id="debug"></div>
@@ -22,13 +23,13 @@
        (function(jq){
          var socket, host = "ws://localhost:$websocket_port$/";
 
-          var supportsWebsockets = function() { return window.WebSocket; }
+          var supported = function() { return window.WebSocket; }
 
           var createSocket = function(uri) {
-            if(supportsWebsockets()) {
-               socket = new WebSocket(uri);
+            if(supported()) {
+               window.socket = socket = new WebSocket(uri);
                socket.onmessage = function(e) {
-                 jq('ul').first().append(['<li>', e.data, '</li>'].join(""));
+                 jq('ul').first().prepend(['<li>', e.data, '</li>'].join(""));
                }
                socket.onopen = function(e) {
                  debug('socket open')
@@ -46,16 +47,15 @@
           createSocket(host);
 
           var send = function(message) {
-            if(!supportsWebsockets()) { return; }
+            if(!supported()) { return; }
             if(socket.readyState == WebSocket.OPEN) {
               socket.send(message);
             } else {
               alert("socket is not open");
             }
           }
-          var isOpen = function() { return supportsWebsockets() ? socket.readyState == WebSocket.OPEN : false; }
-          var isClosed = function() { return supportsWebsockets() ? !isOpen() : false; };
-          var closeSocket = function() { if(supportsWebsockets() && isOpen()) { socket.close(); } };
+          var isOpen = function() { return socket ? socket.readyState == WebSocket.OPEN : false; }
+          var closeSocket = function() { if(socket) { socket.close(); } };
           var openSocket = function() {
              if(isOpen()) {
                alert('socket already open');
@@ -64,6 +64,10 @@
              createSocket(host);
           }
           var toggleConnection = function() { if(isOpen()) { closeSocket(); } else { openSocket(); } };
+          jq("#message").bind('keydown',function(){
+             jq("#submit").removeAttr("disabled");
+             jq(this).unbind('keydown');
+          });
           jq("#submit").click(function(e){
             e.preventDefault();
             send(this.form.message.value);
