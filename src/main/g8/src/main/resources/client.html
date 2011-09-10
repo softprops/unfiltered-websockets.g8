@@ -7,6 +7,7 @@
       body { font-size: 24px; font-family:helvetica, sans serif; padding:1em; color:#333; }
       input[type='text'] { font-size:24px; } #debug { font-size:16px; color:#ccc; }
       ul { list-style:none; }
+      .who { color:#FF00C3; }
     </style>
     <script text="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
   </head>
@@ -29,13 +30,14 @@
             if(supported()) {
                window.socket = socket = new WebSocket(uri);
                socket.onmessage = function(e) {
-                 jq('ul').first().prepend(['<li>', e.data, '</li>'].join(""));
+                 var msg = e.data.split("|"), who = msg.shift(), what =  msg.join("|");
+                 jq('ul').first().prepend(['<li><span class="who">',who,'</span> ', what, '</li>'].join(""));
                }
                socket.onopen = function(e) {
-                 debug('socket open')
+                 debug('connection open')
                }
                socket.onclose = function(e) {
-                 debug('socket close');
+                 debug('connection closed');
                }
              } else {
                alert("your browser does not support web sockets. try chrome.");
