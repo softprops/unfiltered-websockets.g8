@@ -24,11 +24,13 @@
        (function(jq){
          var socket, host = "ws://localhost:$websocket_port$/";
 
-          var supported = function() { return window.WebSocket; }
-
-          var createSocket = function(uri) {
+          var supported = function() { return window.WebSocket || window.MozWebSocket; }
+          , newWebSocket = function(uri) { return window.WebSocket ?
+            new WebSocket(uri) : new MozWebSocket(uri)
+           }
+          , createSocket = function(uri) {
             if(supported()) {
-               window.socket = socket = new WebSocket(uri);
+               window.socket = socket = newWebSocket(uri);
                socket.onmessage = function(e) {
                  var msg = e.data.split("|"), who = msg.shift(), what =  msg.join("|");
                  jq('ul').first().prepend(['<li><span class="who">',who,'</span> ', what, '</li>'].join(""));
@@ -43,29 +45,30 @@
                alert("your browser does not support web sockets. try chrome.");
              }
           }
-
-          var debug = function(msg) { jq("#debug").html(msg); }
-
-          createSocket(host);
-
-          var send = function(message) {
+          , debug = function(msg) { jq("#debug").html(msg); }
+          , isOpen = function() { return socket ?
+            socket.readyState == (window.WebSocket ? WebSocket.OPEN : MozWebSocket.OPEN) : false;
+          }
+          , send = function(message) {
             if(!supported()) { return; }
-            if(socket.readyState == WebSocket.OPEN) {
+            if(isOpen()) {
               socket.send(message);
             } else {
               alert("socket is not open");
             }
           }
-          var isOpen = function() { return socket ? socket.readyState == WebSocket.OPEN : false; }
-          var closeSocket = function() { if(socket) { socket.close(); } };
-          var openSocket = function() {
+          , closeSocket = function() { if(socket) { socket.close(); } }
+          , openSocket = function() {
              if(isOpen()) {
                alert('socket already open');
                return;
              }
              createSocket(host);
           }
-          var toggleConnection = function() { if(isOpen()) { closeSocket(); } else { openSocket(); } };
+          , toggleConnection = function() { if(isOpen()) { closeSocket(); } else { openSocket(); } };
+
+          createSocket(host);
+
           jq("#message").bind('keydown',function(){
              jq("#submit").removeAttr("disabled");
              jq(this).unbind('keydown');
