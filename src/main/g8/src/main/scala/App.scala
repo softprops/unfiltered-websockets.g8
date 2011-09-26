@@ -9,7 +9,10 @@ object App {
     val sockets: ConcurrentMap[Int, WebSocket] =
       new java.util.concurrent.ConcurrentHashMap[Int, WebSocket]
 
-    def notify(msg: String) = sockets.values.foreach(_.send(msg))
+    def notify(msg: String) = sockets.values.foreach { s =>
+      if(s.channel.isConnected) s.send(msg)
+    }
+
     unfiltered.netty.Http($websocket_port$).handler(unfiltered.netty.websockets.Planify({
       case _ => {
         case Open(s) =>
