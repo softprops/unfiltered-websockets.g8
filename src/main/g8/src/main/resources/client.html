@@ -13,10 +13,9 @@
   </head>
   <body>
     ws://localhost:$websocket_port$/
-    <form onsubmit="return false;">
+    <form id="frm">
       <input type="text" name="message" id="message" placeholder="Hey bro" />
-      <input type="submit" value="Send" disabled="disabled" id="submit" />
-      <input type="button" value="toogle connection" id="tooglr" />
+      <div><input type="button" value="toogle connection" id="tooglr" /></div>
     </form>
     <div id="debug"></div>
     <ul></ul>
@@ -73,10 +72,10 @@
              jq("#submit").removeAttr("disabled");
              jq(this).unbind('keydown');
           });
-          jq("#submit").click(function(e){
+          jq("#frm").submit(function(e){
             e.preventDefault();
-            send(this.form.message.value);
-            this.form.message.value = '';
+            send(this.message.value);
+            this.message.value = '';
             return false;
           });
           jq("#tooglr").click(function(e){
