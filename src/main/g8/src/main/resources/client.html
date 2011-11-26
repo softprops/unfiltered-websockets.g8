@@ -76,6 +76,7 @@
           jq("#submit").click(function(e){
             e.preventDefault();
             send(this.form.message.value);
+            this.form.message.value = '';
             return false;
           });
           jq("#tooglr").click(function(e){
