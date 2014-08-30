@@ -1,1 +1,1 @@
-addSbtPlugin("net.databinder" % "giter8-plugin" % "0.3.2")
+addSbtPlugin("net.databinder.giter8" % "giter8-plugin" % "0.6.6")
