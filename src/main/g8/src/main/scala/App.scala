@@ -1,34 +1,31 @@
 object App {
   import unfiltered.netty.websockets._
   import unfiltered.util._
-  import scala.collection.mutable.ConcurrentMap
+  import scala.collection.concurrent.TrieMap
   import unfiltered.response.ResponseString
 
   def main(args: Array[String]) {
-    import scala.collection.JavaConversions._
-    val sockets: ConcurrentMap[Int, WebSocket] =
-      new java.util.concurrent.ConcurrentHashMap[Int, WebSocket]
+    val sockets: TrieMap[Int, WebSocket] = TrieMap.empty
 
     def notify(msg: String) = sockets.values.foreach { s =>
-      if(s.channel.isConnected) s.send(msg)
+      if(s.channel.isActive) s.send(msg)
     }
 
-    unfiltered.netty.Http($websocket_port$).handler(unfiltered.netty.websockets.Planify({
+    unfiltered.netty.Server.local($websocket_port$).handler(unfiltered.netty.websockets.Planify({
       case _ => {
         case Open(s) =>
-          notify("%s|joined" format s.channel.getId)
-          sockets += (s.channel.getId.intValue -> s)
+          notify("%s|joined" format s.channel.##)
+          sockets += (s.channel.## -> s)
           s.send("sys|hola!")
         case Message(s, Text(msg)) =>
-          notify("%s|%s" format(s.channel.getId, msg))
+          notify("%s|%s" format(s.channel.##, msg))
         case Close(s) =>
-          sockets -= s.channel.getId.intValue
-          notify("%s|left" format s.channel.getId)
+          sockets -= s.channel.##
+          notify("%s|left" format s.channel.##)
         case Error(s, e) =>
           e.printStackTrace
       }
-    })
-    .onPass(_.sendUpstream(_)))
+    }))
     .handler(unfiltered.netty.cycle.Planify{
       case _ => ResponseString("not a websocket")
     })

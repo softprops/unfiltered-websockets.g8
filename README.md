@@ -1,4 +1,4 @@
-# Unfiltered Websockets g8 template
+# Unfiltered Websockets g8 template [![Build Status](https://travis-ci.org/softprops/unfiltered-websockets.g8.svg?branch=master)](https://travis-ci.org/softprops/unfiltered-websockets.g8)
 
 A simple [g8][g8] template demoing [unfiltered][uf] [websockets][ws]
 
