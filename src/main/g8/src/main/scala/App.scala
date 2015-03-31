@@ -1,41 +1,37 @@
-object App {
-  import unfiltered.netty.websockets._
-  import unfiltered.util._
-  import scala.collection.mutable.ConcurrentMap
-  import unfiltered.response.ResponseString
+object WebSocketServer extends App {
+    import unfiltered.netty.websockets._
+    import unfiltered.util._
+    import scala.collection.concurrent
+    import unfiltered.response.ResponseString
 
-  def main(args: Array[String]) {
-    import scala.collection.JavaConversions._
-    val sockets: ConcurrentMap[Int, WebSocket] =
-      new java.util.concurrent.ConcurrentHashMap[Int, WebSocket]
+    val sockets: concurrent.Map[Int, WebSocket] = concurrent.TrieMap()
 
-    def notify(msg: String) = sockets.values.foreach { s =>
-      if(s.channel.isConnected) s.send(msg)
+    def broadcast(msg: String) = sockets.values.foreach { s =>
+        if(s.channel.isActive) s.send(msg)
     }
 
-    unfiltered.netty.Http($websocket_port$).handler(unfiltered.netty.websockets.Planify({
-      case _ => {
-        case Open(s) =>
-          notify("%s|joined" format s.channel.getId)
-          sockets += (s.channel.getId.intValue -> s)
-          s.send("sys|hola!")
-        case Message(s, Text(msg)) =>
-          notify("%s|%s" format(s.channel.getId, msg))
-        case Close(s) =>
-          sockets -= s.channel.getId.intValue
-          notify("%s|left" format s.channel.getId)
-        case Error(s, e) =>
-          e.printStackTrace
-      }
+    unfiltered.netty.Http($websocket_port$).handler(unfiltered.netty.websockets.Planify{
+        case _ => {
+            case Open(s) =>
+                broadcast("%s|joined" format s.channel.hashCode)
+                sockets += (s.channel.hashCode -> s)
+                s.send("sys|hola!")
+            case Message(s, Text(msg)) =>
+                broadcast("%s|%s" format(s.channel.hashCode, msg))
+            case Close(s) =>
+                sockets -= s.channel.hashCode
+                broadcast("%s|left" format s.channel.hashCode)
+            case Error(s, e) =>
+                e.printStackTrace
+        }
     })
-    .onPass(_.sendUpstream(_)))
     .handler(unfiltered.netty.cycle.Planify{
-      case _ => ResponseString("not a websocket")
+        case _ => ResponseString("not a websocket")
     })
-    .run {s =>
-       (1 to $socket_connections$).foreach { i =>
-         Browser.open("file://%s" format(App.getClass.getResource("client.html").getFile))
-       }
-     }
-  }
+    .run { _ =>
+        (1 to $socket_connections$).foreach { _ =>
+            val indexFile = getClass.getResource("client.html").getFile
+            Browser.open("file://" + indexFile)
+        }
+    }
 }
